@@ -4,6 +4,9 @@
 #include "../../TX/TXLib.h"
 #include <emmintrin.h>
 
+#define SHOW 0
+#define OPTIMIZED 1
+
 #define VERT_SIZE 600
 #define HOR_SIZE  800
 

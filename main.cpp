@@ -1,7 +1,5 @@
 #include "Alpha_Blending.hpp"
 
-#define OPTIMIZED 1
-
 int main (int argc, char *argv[])
 {         
     if (argc < 3)

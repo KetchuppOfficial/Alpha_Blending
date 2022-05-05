@@ -144,7 +144,9 @@ static void Blend_Optimized (scr_t front, scr_t back, scr_t screen)
 
         __m128i color = (__m128i) _mm_movelh_ps ((__m128) sum, (__m128) SUM);
 
+        #if SHOW == 1
         _mm_storeu_si128 ((__m128i*) &screen[y][x], color);
+        #endif
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     }
 }
@@ -160,9 +162,15 @@ static void Blend_Unoptimized (scr_t front, scr_t back, scr_t screen)
             
             uint16_t a  = fr->rgbReserved;
 
+            #if SHOW == 1
             screen[y][x] = {(BYTE) ( (fr->rgbBlue  * a + bk->rgbBlue  * (255 - a)) >> 8 ),
                             (BYTE) ( (fr->rgbGreen * a + bk->rgbGreen * (255 - a)) >> 8 ),
                             (BYTE) ( (fr->rgbRed   * a + bk->rgbRed   * (255 - a)) >> 8 )};
+            #elif SHOW == 0
+            BYTE blue  = (BYTE) ( (fr->rgbBlue  * a + bk->rgbBlue  * (255 - a)) >> 8 );
+            BYTE green = (BYTE) ( (fr->rgbGreen * a + bk->rgbGreen * (255 - a)) >> 8 );
+            BYTE red   = (BYTE) ( (fr->rgbRed   * a + bk->rgbRed   * (255 - a)) >> 8 );
+            #endif
         }
     }
 }
