@@ -8,5 +8,5 @@ int main (int argc, char *argv[])
         exit (EXIT_FAILURE);
     }
     
-    Draw (argv[1], argv[2]);
+    Draw_Optimized (argv[1], argv[2]);
 }
