@@ -1,5 +1,7 @@
 #include "Alpha_Blending.hpp"
 
+#define OPTIMIZED 1
+
 int main (int argc, char *argv[])
 {         
     if (argc < 3)
@@ -8,5 +10,9 @@ int main (int argc, char *argv[])
         exit (EXIT_FAILURE);
     }
     
+    #if OPTIMIZED == 1
     Draw_Optimized (argv[1], argv[2]);
+    #else
+    Draw_Unoptimized (argv[1], argv[2]);
+    #endif
 }
