@@ -192,7 +192,9 @@ void Draw (const char *front_name, const char *back_name)
     scr_t back   = Load_Image (back_name);
     scr_t screen = (scr_t) *txVideoMemory();
 
-    for (int n = 0; ; n++)
+    clock_t start = clock ();
+
+    for (unsigned long long n_frames = 0; n_frames < N_FRAMES; n_frames++)
     {
         if (GetAsyncKeyState (VK_ESCAPE))
             break;
@@ -202,14 +204,13 @@ void Draw (const char *front_name, const char *back_name)
         #elif OPTIMIZED == 0
         Blend_Unoptimized (front, back, screen);
         #endif
-                
-        if (!(n % 10))
-            printf ("\t\r%.0lf", txGetFPS() * 10);
 
         #if SHOW == 1
         txUpdateWindow();
         #endif
     }
+
+    printf ("Average FPS: %f\n", (double)N_FRAMES * (double)CLOCKS_PER_SEC / (clock () - start));
 
     txDisableAutoPause();
 }
