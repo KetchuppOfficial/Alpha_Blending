@@ -92,18 +92,18 @@ static void Blend_Optimized (scr_t front, scr_t back, scr_t screen)
         __m128i mask = _mm_set_epi8 (high_on, 14, high_on, 14, high_on, 14, high_on, 14,
                                      high_on,  6, high_on,  6, high_on,  6, high_on,  6);
 
-        __m128i a = _mm_shuffle_epi8 (fr, mask);
-        __m128i A = _mm_shuffle_epi8 (FR, mask);
+        __m128i alpha = _mm_shuffle_epi8 (fr, mask);
+        __m128i ALPHA = _mm_shuffle_epi8 (FR, mask);
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // STEP 5:
 
-        fr = _mm_mullo_epi16 (fr, a);   // fr *= a
-        FR = _mm_mullo_epi16 (FR, A);   // FR *= A
+        fr = _mm_mullo_epi16 (fr, alpha);   // fr *= alpha
+        FR = _mm_mullo_epi16 (FR, ALPHA);   // FR *= ALPHA
 
-        bk = _mm_mullo_epi16 (bk, _mm_sub_epi16 (_255, a)); // bk *= (255 - a)
-        BK = _mm_mullo_epi16 (BK, _mm_sub_epi16 (_255, A)); // BK *= (255 - A)
+        bk = _mm_mullo_epi16 (bk, _mm_sub_epi16 (_255, alpha)); // bk *= (255 - alpha)
+        BK = _mm_mullo_epi16 (BK, _mm_sub_epi16 (_255, ALPHA)); // BK *= (255 - ALPHA)
 
         __m128i sum = _mm_add_epi16 (fr, bk);  // sum = fr + bk
         __m128i SUM = _mm_add_epi16 (FR, BK);  // SUM = FR + BK
@@ -122,7 +122,7 @@ static void Blend_Optimized (scr_t front, scr_t back, scr_t screen)
         //-----------------------------------------------------------------------
 
         mask = _mm_set_epi8 (high_on, high_on, high_on, high_on, high_on, high_on, high_on, high_on, 
-                                                   15U,     13U,     11U,      9U,      7U,      5U,      3U,      1U);
+                                 15U,     13U,     11U,      9U,      7U,      5U,      3U,      1U);
 
         sum = _mm_shuffle_epi8 (sum, mask);
         SUM = _mm_shuffle_epi8 (SUM, mask);
