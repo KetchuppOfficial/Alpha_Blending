@@ -25,7 +25,7 @@ Compile the program using the tool **make**:
 make
 ```
 
-You can also choose compliler optimization flag as in the example below:
+You can also choose one of compliler optimization flags as in the example below:
 ```bash
 make OPT=-O2
 ```
