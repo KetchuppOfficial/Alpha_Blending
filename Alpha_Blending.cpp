@@ -178,9 +178,9 @@ void Draw (const char *front_name, const char *back_name)
 {
     Create_Window (HOR_SIZE, VERT_SIZE);
     
-    scr_t front = Load_Image (front_name);
-    scr_t back  = Load_Image (back_name);
-    scr_t screen   = (scr_t) *txVideoMemory();
+    scr_t front  = Load_Image (front_name);
+    scr_t back   = Load_Image (back_name);
+    scr_t screen = (scr_t) *txVideoMemory();
 
     for (int n = 0; ; n++)
     {
