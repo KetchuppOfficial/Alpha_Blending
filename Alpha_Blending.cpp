@@ -17,7 +17,7 @@ static inline scr_t Load_Image (const char* filename)
     return (scr_t) *mem;
 }
 
-static void Calculate (scr_t front, scr_t back, scr_t screen)
+static void Blend_Optimized (scr_t front, scr_t back, scr_t screen)
 {
     const __m128i   _0 = _mm_set_epi8 (0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0);
     const __m128i _255 = _mm_cvtepu8_epi16 (_mm_set_epi8 (255U, 255U, 255U, 255U,  255U, 255U, 255U, 255U, 
@@ -149,7 +149,7 @@ static void Calculate (scr_t front, scr_t back, scr_t screen)
     }
 }
 
-static void Blend (scr_t front, scr_t back, scr_t screen)
+static void Blend_Unoptimized (scr_t front, scr_t back, scr_t screen)
 {
     for (int y = 0; y < VERT_SIZE; y++)
     {
@@ -188,9 +188,9 @@ void Draw (const char *front_name, const char *back_name)
             break;
         
         if (!GetKeyState (VK_CAPITAL))
-            Calculate (front, back, screen);
+            Blend_Optimized (front, back, screen);
         else
-            Blend (front, back, screen);
+            Blend_Unoptimized (front, back, screen);
                 
         if (!(n % 10))
             printf ("\t\r%.0lf", txGetFPS() * 10);
