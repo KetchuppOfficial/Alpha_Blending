@@ -182,9 +182,11 @@ static void Create_Window (const int hor_size, const int vert_size)
     txBegin();
 }
     
-void Draw_Optimized (const char *front_name, const char *back_name)
+void Draw (const char *front_name, const char *back_name)
 {
+    #if SHOW == 1
     Create_Window (HOR_SIZE, VERT_SIZE);
+    #endif
     
     scr_t front  = Load_Image (front_name);
     scr_t back   = Load_Image (back_name);
@@ -195,36 +197,18 @@ void Draw_Optimized (const char *front_name, const char *back_name)
         if (GetAsyncKeyState (VK_ESCAPE))
             break;
 
+        #if OPTIMIZED == 1
         Blend_Optimized (front, back, screen);
-                
-        if (!(n % 10))
-            printf ("\t\r%.0lf", txGetFPS() * 10);
-
-        txUpdateWindow();
-    }
-
-    txDisableAutoPause();
-}
-
-void Draw_Unoptimized (const char *front_name, const char *back_name)
-{
-    Create_Window (HOR_SIZE, VERT_SIZE);
-    
-    scr_t front  = Load_Image (front_name);
-    scr_t back   = Load_Image (back_name);
-    scr_t screen = (scr_t) *txVideoMemory();
-
-    for (int n = 0; ; n++)
-    {
-        if (GetAsyncKeyState (VK_ESCAPE))
-            break;
-
+        #elif OPTIMIZED == 0
         Blend_Unoptimized (front, back, screen);
+        #endif
                 
         if (!(n % 10))
             printf ("\t\r%.0lf", txGetFPS() * 10);
 
+        #if SHOW == 1
         txUpdateWindow();
+        #endif
     }
 
     txDisableAutoPause();
