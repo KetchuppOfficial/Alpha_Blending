@@ -36,4 +36,17 @@ make run FR=Images\Cat.bmp BK=Images\Table.bmp
 ```
 FR - picture that is supposed to be on the foreground, BK - picture to place on the background.
 
+There are some options of conditional compilations in [Alpha_Blending.hpp](Alpha_Blending.hpp):
+```C++
+#ifndef ALPHA_BLENDING_INCLUDED
+#define ALPHA_BLENDING_INCLUDED
+
+#include "../../TX/TXLib.h"
+#include <emmintrin.h>
+#include <time.h>
+
+#define SHOW 1              // <--- Choose if there is output
+#define N_FRAMES 1000       // <--- Number of frames to calculate
+#define OPTIMIZED 0         // <--- SSE version or not
+```
 
