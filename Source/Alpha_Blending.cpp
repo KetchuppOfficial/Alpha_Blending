@@ -89,11 +89,11 @@ static void Blend_Optimized (scr_t front, scr_t back, scr_t screen)
         // a  = [-- a1 -- a1 | -- a1 -- a1 | -- a0 -- a0 | -- a0 -- a0]
         //-----------------------------------------------------------------------
 
-        const __m128i a_mask = _mm_set_epi8 (high_on, 14, high_on, 14, high_on, 14, high_on, 14,
-                                             high_on,  6, high_on,  6, high_on,  6, high_on,  6);
+        __m128i mask = _mm_set_epi8 (high_on, 14, high_on, 14, high_on, 14, high_on, 14,
+                                     high_on,  6, high_on,  6, high_on,  6, high_on,  6);
 
-        __m128i a = _mm_shuffle_epi8 (fr, a_mask);
-        __m128i A = _mm_shuffle_epi8 (FR, a_mask);
+        __m128i a = _mm_shuffle_epi8 (fr, mask);
+        __m128i A = _mm_shuffle_epi8 (FR, mask);
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -121,11 +121,11 @@ static void Blend_Optimized (scr_t front, scr_t back, scr_t screen)
         // sum = [-- -- -- -- | -- -- -- -- | A1 R1 G1 B1 | A0 R0 G0 B0]
         //-----------------------------------------------------------------------
 
-        const __m128i sum_mask = _mm_set_epi8 (high_on, high_on, high_on, high_on, high_on, high_on, high_on, high_on, 
+        mask = _mm_set_epi8 (high_on, high_on, high_on, high_on, high_on, high_on, high_on, high_on, 
                                                    15U,     13U,     11U,      9U,      7U,      5U,      3U,      1U);
 
-        sum = _mm_shuffle_epi8 (sum, sum_mask);
-        SUM = _mm_shuffle_epi8 (SUM, sum_mask);
+        sum = _mm_shuffle_epi8 (sum, mask);
+        SUM = _mm_shuffle_epi8 (SUM, mask);
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
