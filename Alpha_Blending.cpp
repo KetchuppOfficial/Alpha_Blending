@@ -103,7 +103,7 @@ static void Calculate (scr_t front, scr_t back, scr_t screen)
         FR = _mm_mullo_epi16 (FR, A);   // FR *= A
 
         bk = _mm_mullo_epi16 (bk, _mm_sub_epi16 (_255, a)); // bk *= (255 - a)
-        BK = _mm_mullo_epi16 (BK, _mm_sub_epi16 (_255, A)); // BK *= (255 - a)
+        BK = _mm_mullo_epi16 (BK, _mm_sub_epi16 (_255, A)); // BK *= (255 - A)
 
         __m128i sum = _mm_add_epi16 (fr, bk);  // sum = fr + bk
         __m128i SUM = _mm_add_epi16 (FR, BK);  // SUM = FR + BK
