@@ -3,9 +3,11 @@
 
 #include "../../TX/TXLib.h"
 #include <emmintrin.h>
+#include <time.h>
 
-#define SHOW 0
-#define OPTIMIZED 1
+#define SHOW 1
+#define N_FRAMES 1000
+#define OPTIMIZED 0
 
 #define VERT_SIZE 600
 #define HOR_SIZE  800
