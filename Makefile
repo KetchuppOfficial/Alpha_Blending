@@ -13,7 +13,7 @@ Alpha_Blending.o:
 	$(CC) -c Alpha_Blending.cpp -msse4.2 -O3 -o Alpha_Blending.o
 
 run:
-	.\Alpha_Blending.exe "Images\Cat.bmp" "Images\Table.bmp"
+	.\Alpha_Blending.exe $(FR) $(BK)
 
 clean:
 	del *.exe
