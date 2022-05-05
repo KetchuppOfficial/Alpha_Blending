@@ -2,6 +2,13 @@
 
 typedef RGBQUAD (&scr_t) [VERT_SIZE][HOR_SIZE];
 
+static void Create_Window (const int hor_size, const int vert_size)
+{
+    txCreateWindow (hor_size, vert_size);
+    Win32::_fpreset();
+    txBegin();
+}
+
 static inline scr_t Load_Image (const char* filename)
 {
     RGBQUAD* mem = NULL;
@@ -173,13 +180,6 @@ static void Blend_Unoptimized (scr_t front, scr_t back, scr_t screen)
             #endif
         }
     }
-}
-
-static void Create_Window (const int hor_size, const int vert_size)
-{
-    txCreateWindow (hor_size, vert_size);
-    Win32::_fpreset();
-    txBegin();
 }
     
 void Draw (const char *front_name, const char *back_name)
