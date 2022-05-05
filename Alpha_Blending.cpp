@@ -166,12 +166,17 @@ static void Blend (scr_t front, scr_t back, scr_t screen)
         }
     }
 }
+
+static void Create_Window (const int hor_size, const int vert_size)
+{
+    txCreateWindow (hor_size, vert_size);
+    Win32::_fpreset();
+    txBegin();
+}
     
 void Draw (const char *front_name, const char *back_name)
 {
-    txCreateWindow (HOR_SIZE, VERT_SIZE);
-    Win32::_fpreset();
-    txBegin();
+    Create_Window (HOR_SIZE, VERT_SIZE);
     
     scr_t front = Load_Image (front_name);
     scr_t back  = Load_Image (back_name);
