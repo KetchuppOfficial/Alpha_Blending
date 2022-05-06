@@ -6,7 +6,7 @@
 #include <time.h>
 
 #define MEASURE 1
-#define N_FRAMES 10000
+#define N_FRAMES 2000
 #define OPTIMIZED 1
 
 #define VERT_SIZE 600
