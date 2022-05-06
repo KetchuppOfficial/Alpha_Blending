@@ -46,6 +46,21 @@ There are some options of conditional compilations in [Alpha_Blending.hpp](Alpha
 #include <time.h>
 
 #define MEASURE 1           // <--- Set 1 to measure FPS
-#define N_FRAMES 10000      // <--- Set the number of frames to draw
-#define OPTIMIZED 0         // <--- Set 1 to turn of SSE optimizations
+#define N_FRAMES 2000       // <--- Set the number of frames to draw
+#define OPTIMIZED 1         // <--- Set 1 to turn of SSE optimizations
 ```
+
+## Measurement of FPS
+
+I ran a test that was calculating a frame for 2000 times. Only the time spent on the calculations was measured and all those time intervals were added. The average FPS was obtained by dividing the number of frames by mentioned aggregate time. You can see the results of this testing below.
+
+### Average FPS:
+
+| Optimization flag | Basic version | SSE version |
+|-------------------|---------------|-------------|
+|       None        |      126      |     121     |
+|       -O1         |      622      |    1845     |
+|       -O2         |      577      |    1830     |
+|       -O3         |      703      |    1847     |
+
+We see that both optimized and unoptimized versions are equal in performace if being compiled without any optimization flag. At the same time -O1, -O2 and -O3 boost each version approximately equally. The boost coefficient is ~ 1800 / 600 = 3.
