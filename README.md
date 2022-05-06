@@ -45,8 +45,7 @@ There are some options of conditional compilations in [Alpha_Blending.hpp](Alpha
 #include <emmintrin.h>
 #include <time.h>
 
-#define SHOW 1              // <--- Choose if there is output
-#define N_FRAMES 1000       // <--- Number of frames to calculate
-#define OPTIMIZED 0         // <--- SSE version or not
+#define MEASURE 1           // <--- Set 1 to measure FPS
+#define N_FRAMES 10000      // <--- Set the number of frames to draw
+#define OPTIMIZED 0         // <--- Set 1 to turn of SSE optimizations
 ```
-
