@@ -5,9 +5,9 @@
 #include <emmintrin.h>
 #include <time.h>
 
-#define SHOW 1
-#define N_FRAMES 1000
-#define OPTIMIZED 0
+#define MEASURE 1
+#define N_FRAMES 10000
+#define OPTIMIZED 1
 
 #define VERT_SIZE 600
 #define HOR_SIZE  800
