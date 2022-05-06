@@ -151,9 +151,7 @@ static void Blend_Optimized (scr_t front, scr_t back, scr_t screen)
 
         __m128i color = (__m128i) _mm_movelh_ps ((__m128) sum, (__m128) SUM);
 
-        #if SHOW == 1
         _mm_storeu_si128 ((__m128i*) &screen[y][x], color);
-        #endif
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     }
 }
@@ -169,48 +167,47 @@ static void Blend_Unoptimized (scr_t front, scr_t back, scr_t screen)
             
             uint16_t a  = fr->rgbReserved;
 
-            #if SHOW == 1
             screen[y][x] = {(BYTE) ( (fr->rgbBlue  * a + bk->rgbBlue  * (255 - a)) >> 8 ),
                             (BYTE) ( (fr->rgbGreen * a + bk->rgbGreen * (255 - a)) >> 8 ),
                             (BYTE) ( (fr->rgbRed   * a + bk->rgbRed   * (255 - a)) >> 8 )};
-            #elif SHOW == 0
-            BYTE blue  = (BYTE) ( (fr->rgbBlue  * a + bk->rgbBlue  * (255 - a)) >> 8 );
-            BYTE green = (BYTE) ( (fr->rgbGreen * a + bk->rgbGreen * (255 - a)) >> 8 );
-            BYTE red   = (BYTE) ( (fr->rgbRed   * a + bk->rgbRed   * (255 - a)) >> 8 );
-            #endif
         }
     }
 }
     
 void Draw (const char *front_name, const char *back_name)
 {
-    #if SHOW == 1
     Create_Window (HOR_SIZE, VERT_SIZE);
-    #endif
     
     scr_t front  = Load_Image (front_name);
     scr_t back   = Load_Image (back_name);
     scr_t screen = (scr_t) *txVideoMemory();
 
-    clock_t start = clock ();
+    #if MEASURE == 1
+    clock_t run_time = 0;
+    #endif
 
     for (unsigned long long n_frames = 0; n_frames < N_FRAMES; n_frames++)
     {
-        if (GetAsyncKeyState (VK_ESCAPE))
-            break;
-
+        #if MEASURE == 1
+        clock_t start = clock ();
+        #endif
+        
         #if OPTIMIZED == 1
         Blend_Optimized (front, back, screen);
         #elif OPTIMIZED == 0
         Blend_Unoptimized (front, back, screen);
         #endif
 
-        #if SHOW == 1
-        txUpdateWindow();
+        #if MEASURE == 1
+        run_time += (clock () - start);
         #endif
+
+        txUpdateWindow();
     }
 
-    printf ("Average FPS: %f\n", (double)N_FRAMES * (double)CLOCKS_PER_SEC / (clock () - start));
+    #if MEASURE == 1
+    printf ("Average FPS: %f\n", (double)N_FRAMES * (double)CLOCKS_PER_SEC / run_time);
+    #endif
 
     txDisableAutoPause();
 }
