@@ -1,15 +1,25 @@
 #include "../Alpha_Blending.hpp"
 
-typedef RGBQUAD (&scr_t) [VERT_SIZE][HOR_SIZE];
-
-static void Create_Window (const int hor_size, const int vert_size)
+static inline RGBQUAD *Create_Window (const int hor_size, const int vert_size)
 {
-    txCreateWindow (hor_size, vert_size);
-    Win32::_fpreset();
-    txBegin();
+    txCreateWindow (hor_size, vert_size);       // creates window of (hor_size x vert_size); window is centered
+
+    Win32::_fpreset();                          // reinitialization of math coprocessor ()
+                                                // TXLib aborts the program if any error accures
+                                                // this function returns the state to the initial one 
+
+    RGBQUAD *screen_buff = txVideoMemory ();    // return pointer on the screen buffer as if it was one dimention array
+
+    return screen_buff;
 }
 
-static inline scr_t Load_Image (const char* filename)
+struct Image
+{
+    HDC dc;
+    RGBQUAD *mem;
+};
+
+static inline Image Load_Image (const char* filename)           // Make your own function you lazy ass
 {
     RGBQUAD* mem = NULL;
     HDC dc = txCreateDIBSection (HOR_SIZE, VERT_SIZE, &mem);
@@ -21,10 +31,12 @@ static inline scr_t Load_Image (const char* filename)
 
     txDeleteDC (image);
 
-    return (scr_t) *mem;
+    Image img = {dc, mem};
+
+    return img;
 }
 
-static void Blend_Optimized (scr_t front, scr_t back, scr_t screen)
+static void Blend_Optimized (RGBQUAD *front, RGBQUAD *back, RGBQUAD *screen)
 {
     const __m128i   _0 = _mm_set_epi8 (0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0);
     const __m128i _255 = _mm_cvtepu8_epi16 (_mm_set_epi8 (255U, 255U, 255U, 255U,  255U, 255U, 255U, 255U, 
@@ -43,8 +55,8 @@ static void Blend_Optimized (scr_t front, scr_t back, scr_t screen)
         // fr = [r3 g3 b3 a3 | r2 g2 b2 a2 | r1 g1 b1 a1 | r0 g0 b0 a0]
         //-----------------------------------------------------------------------
 
-        __m128i fr = _mm_loadu_si128 ((__m128i*) &front[y][x]);
-        __m128i bk = _mm_loadu_si128 ((__m128i*) &back[y][x]);
+        __m128i fr = _mm_loadu_si128 ((__m128i*)(front + y * HOR_SIZE + x));
+        __m128i bk = _mm_loadu_si128 ((__m128i*)(back  + y * HOR_SIZE + x));
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -151,36 +163,40 @@ static void Blend_Optimized (scr_t front, scr_t back, scr_t screen)
 
         __m128i color = (__m128i) _mm_movelh_ps ((__m128) sum, (__m128) SUM);
 
-        _mm_storeu_si128 ((__m128i*) &screen[y][x], color);
+        _mm_storeu_si128 ((__m128i*)(screen + y * HOR_SIZE + x), color);
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     }
 }
 
-static void Blend_Unoptimized (scr_t front, scr_t back, scr_t screen)
+static void Blend_Unoptimized (RGBQUAD *front, RGBQUAD *back, RGBQUAD *screen)
 {
     for (int y = 0; y < VERT_SIZE; y++)
     {
         for (int x = 0; x < HOR_SIZE; x++)
         {
-            RGBQUAD* fr = &front[y][x];
-            RGBQUAD* bk = &back [y][x];
+            RGBQUAD* fr = front + y * HOR_SIZE + x;
+            RGBQUAD* bk = back  + y * HOR_SIZE + x;
             
-            uint16_t a  = fr->rgbReserved;
+            uint16_t alpha  = fr->rgbReserved;
 
-            screen[y][x] = {(BYTE) ( (fr->rgbBlue  * a + bk->rgbBlue  * (255 - a)) >> 8 ),
-                            (BYTE) ( (fr->rgbGreen * a + bk->rgbGreen * (255 - a)) >> 8 ),
-                            (BYTE) ( (fr->rgbRed   * a + bk->rgbRed   * (255 - a)) >> 8 )};
+            *(screen + y * HOR_SIZE + x) = {(BYTE) ( (fr->rgbBlue  * alpha + bk->rgbBlue  * (255 - alpha)) >> 8 ),
+                                            (BYTE) ( (fr->rgbGreen * alpha + bk->rgbGreen * (255 - alpha)) >> 8 ),
+                                            (BYTE) ( (fr->rgbRed   * alpha + bk->rgbRed   * (255 - alpha)) >> 8 )};
         }
     }
 }
     
 void Draw (const char *front_name, const char *back_name)
 {
-    Create_Window (HOR_SIZE, VERT_SIZE);
+    assert (front_name);
+    assert (back_name);
     
-    scr_t front  = Load_Image (front_name);
-    scr_t back   = Load_Image (back_name);
-    scr_t screen = (scr_t) *txVideoMemory();
+    RGBQUAD *screen = Create_Window (HOR_SIZE, VERT_SIZE);
+    
+    Image frt = Load_Image (front_name);
+    RGBQUAD *front  = frt.mem;
+    Image bck = Load_Image (back_name);
+    RGBQUAD *back  = bck.mem;
 
     #if MEASURE == 1
     clock_t run_time = 0;
@@ -210,4 +226,7 @@ void Draw (const char *front_name, const char *back_name)
     #endif
 
     txDisableAutoPause();
+
+    txDeleteDC (frt.dc);
+    txDeleteDC (bck.dc);
 }
