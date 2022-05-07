@@ -42,9 +42,9 @@ There are some options of conditional compilations in [Alpha_Blending.hpp](Alpha
 #ifndef ALPHA_BLENDING_INCLUDED
 #define ALPHA_BLENDING_INCLUDED
 
-#include "../../TX/TXLib.h"
 #include <emmintrin.h>
-#include <time.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #define MEASURE 0           // <--- Set 1 to measure FPS
 #define N_FRAMES 10000      // <--- Set the number of frames to draw
