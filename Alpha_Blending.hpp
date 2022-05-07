@@ -6,11 +6,7 @@
 #include <time.h>
 
 #define MEASURE 1
-#define N_FRAMES 2000
-#define OPTIMIZED 1
-
-#define VERT_SIZE 600
-#define HOR_SIZE  800
+#define N_FRAMES 1000
 
 void Draw (const char *front_name, const char *back_name);
 
