@@ -5,8 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MEASURE 1
-#define N_FRAMES 1000
+#define MEASURE 0
+#define N_FRAMES 10000
 
 void Draw (const char *front_name, const char *back_name);
 
