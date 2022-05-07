@@ -1,42 +1,72 @@
 #include "../Alpha_Blending.hpp"
 
+struct Img
+{
+    HDC image;
+    int width;
+    int height;
+};
+
+struct Blending
+{
+    RGBQUAD *front;
+    HDC front_dc;
+    RGBQUAD *back;
+    HDC back_dc;
+    int width;
+    int height;
+};
+
+static Img Load_Image (const char *img_name)
+{
+    HDC img = txLoadImage (img_name);
+    int img_width  = txGetExtentX (img);
+    int img_height = txGetExtentY (img);
+
+    Img img_struct = {img, img_width, img_height};
+    return img_struct;
+}
+
+static Blending Load_Images (const char *foreground, const char *background)
+{
+    Img front = Load_Image (foreground);
+    Img back  = Load_Image (background);
+
+    if (front.width > back.width || front.height > back.height)
+    {
+        printf ("Foreground picutre souldn't be bigger than background picture\n");
+        Blending invalid = {NULL, {}, NULL, {}, 0, 0};
+        return invalid;
+    }
+
+    RGBQUAD *back_ptr = NULL;
+    HDC back_dc = txCreateDIBSection (back.width, back.height, &back_ptr);
+    txBitBlt (back_dc, 0, 0, 0, 0, back.image);
+    txDeleteDC (back.image);
+
+    RGBQUAD *front_ptr = NULL;
+    HDC front_dc = txCreateDIBSection (back.width, back.height, &front_ptr);
+    txBitBlt (front_dc, 0, 0, 0, 0, front_dc, 0, 0, BLACKNESS); // filling canvas with black
+    txBitBlt (front_dc, (back.width - front.width) / 2, (back.height - front.height) / 2, 0, 0, front.image);
+    //            /                  /                            \                       /   \          \.
+    //    destination       of the img after copying   y of img after copying        width     height     source
+
+    txDeleteDC (front.image);
+
+    Blending valid = {front_ptr, front_dc, back_ptr, back_dc, back.width, back.height};
+    return valid;
+}
+
 static inline RGBQUAD *Create_Window (const int hor_size, const int vert_size)
 {
     txCreateWindow (hor_size, vert_size);       // creates window of (hor_size x vert_size); window is centered
-
-    Win32::_fpreset();                          // reinitialization of math coprocessor ()
-                                                // TXLib aborts the program if any error accures
-                                                // this function returns the state to the initial one 
 
     RGBQUAD *screen_buff = txVideoMemory ();    // return pointer on the screen buffer as if it was one dimention array
 
     return screen_buff;
 }
 
-struct Image
-{
-    HDC dc;
-    RGBQUAD *mem;
-};
-
-static inline Image Load_Image (const char* filename)           // Make your own function you lazy ass
-{
-    RGBQUAD* mem = NULL;
-    HDC dc = txCreateDIBSection (HOR_SIZE, VERT_SIZE, &mem);
-    txBitBlt (dc, 0, 0, 0, 0, dc, 0, 0, BLACKNESS);
-
-    HDC image = txLoadImage (filename);
-    txBitBlt (dc, (txGetExtentX (dc) - txGetExtentX (image)) / 2, 
-                  (txGetExtentY (dc) - txGetExtentY (image)) / 2, 0, 0, image);
-
-    txDeleteDC (image);
-
-    Image img = {dc, mem};
-
-    return img;
-}
-
-static void Blend_Optimized (RGBQUAD *front, RGBQUAD *back, RGBQUAD *screen)
+static void Blend_Optimized (RGBQUAD *front, RGBQUAD *back, RGBQUAD *screen, const int width, const int height)
 {
     const __m128i   _0 = _mm_set_epi8 (0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0);
     const __m128i _255 = _mm_cvtepu8_epi16 (_mm_set_epi8 (255U, 255U, 255U, 255U,  255U, 255U, 255U, 255U, 
@@ -44,8 +74,8 @@ static void Blend_Optimized (RGBQUAD *front, RGBQUAD *back, RGBQUAD *screen)
     
     const unsigned char high_on = 128; // 128d = 10000000b
     
-    for (int y = 0; y < VERT_SIZE; y++)
-    for (int x = 0; x < HOR_SIZE;  x += 4)
+    for (int y = 0; y < height; y++)
+    for (int x = 0; x < width;  x += 4)
     {
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // STEP 1:
@@ -55,8 +85,8 @@ static void Blend_Optimized (RGBQUAD *front, RGBQUAD *back, RGBQUAD *screen)
         // fr = [r3 g3 b3 a3 | r2 g2 b2 a2 | r1 g1 b1 a1 | r0 g0 b0 a0]
         //-----------------------------------------------------------------------
 
-        __m128i fr = _mm_loadu_si128 ((__m128i*)(front + y * HOR_SIZE + x));
-        __m128i bk = _mm_loadu_si128 ((__m128i*)(back  + y * HOR_SIZE + x));
+        __m128i fr = _mm_loadu_si128 ((__m128i*)(front + y * width + x));
+        __m128i bk = _mm_loadu_si128 ((__m128i*)(back  + y * width + x));
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -163,25 +193,25 @@ static void Blend_Optimized (RGBQUAD *front, RGBQUAD *back, RGBQUAD *screen)
 
         __m128i color = (__m128i) _mm_movelh_ps ((__m128) sum, (__m128) SUM);
 
-        _mm_storeu_si128 ((__m128i*)(screen + y * HOR_SIZE + x), color);
+        _mm_storeu_si128 ((__m128i*)(screen + y * width + x), color);
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     }
 }
 
-static void Blend_Unoptimized (RGBQUAD *front, RGBQUAD *back, RGBQUAD *screen)
+static void Blend_Unoptimized (RGBQUAD *front, RGBQUAD *back, RGBQUAD *screen, const int width, const int height)
 {
-    for (int y = 0; y < VERT_SIZE; y++)
+    for (int y = 0; y < height; y++)
     {
-        for (int x = 0; x < HOR_SIZE; x++)
+        for (int x = 0; x < width; x++)
         {
-            RGBQUAD* fr = front + y * HOR_SIZE + x;
-            RGBQUAD* bk = back  + y * HOR_SIZE + x;
+            RGBQUAD* fr = front + y * width + x;
+            RGBQUAD* bk = back  + y * width + x;
             
             uint16_t alpha  = fr->rgbReserved;
 
-            *(screen + y * HOR_SIZE + x) = {(BYTE) ( (fr->rgbBlue  * alpha + bk->rgbBlue  * (255 - alpha)) >> 8 ),
-                                            (BYTE) ( (fr->rgbGreen * alpha + bk->rgbGreen * (255 - alpha)) >> 8 ),
-                                            (BYTE) ( (fr->rgbRed   * alpha + bk->rgbRed   * (255 - alpha)) >> 8 )};
+            *(screen + y * width + x) = {(BYTE) ( (fr->rgbBlue  * alpha + bk->rgbBlue  * (255 - alpha)) >> 8 ),
+                                         (BYTE) ( (fr->rgbGreen * alpha + bk->rgbGreen * (255 - alpha)) >> 8 ),
+                                         (BYTE) ( (fr->rgbRed   * alpha + bk->rgbRed   * (255 - alpha)) >> 8 )};
         }
     }
 }
@@ -190,13 +220,19 @@ void Draw (const char *front_name, const char *back_name)
 {
     assert (front_name);
     assert (back_name);
-    
-    RGBQUAD *screen = Create_Window (HOR_SIZE, VERT_SIZE);
-    
-    Image frt = Load_Image (front_name);
-    RGBQUAD *front  = frt.mem;
-    Image bck = Load_Image (back_name);
-    RGBQUAD *back  = bck.mem;
+
+    Win32::_fpreset();  // reinitialization of math coprocessor ()
+                        // TXLib aborts the program if any error accures
+                        // this function returns the state to the initial one 
+
+    Blending front_back = Load_Images (front_name, back_name);
+    if (front_back.front == NULL)
+        return;
+
+    RGBQUAD *front = front_back.front;
+    RGBQUAD *back  = front_back.back;
+
+    RGBQUAD *screen = Create_Window (front_back.width, front_back.height);
 
     #if MEASURE == 1
     clock_t run_time = 0;
@@ -208,10 +244,12 @@ void Draw (const char *front_name, const char *back_name)
         clock_t start = clock ();
         #endif
         
-        #if OPTIMIZED == 1
-        Blend_Optimized (front, back, screen);
-        #elif OPTIMIZED == 0
-        Blend_Unoptimized (front, back, screen);
+        #ifdef OPTIMIZED
+        Blend_Optimized   (front, back, screen, front_back.width, front_back.height);
+        #endif
+
+        #ifndef OPTIMIZED
+        Blend_Unoptimized (front, back, screen, front_back.width, front_back.height);
         #endif
 
         #if MEASURE == 1
@@ -227,6 +265,6 @@ void Draw (const char *front_name, const char *back_name)
 
     txDisableAutoPause();
 
-    txDeleteDC (frt.dc);
-    txDeleteDC (bck.dc);
+    txDeleteDC (front_back.front_dc);
+    txDeleteDC (front_back.back_dc);
 }
