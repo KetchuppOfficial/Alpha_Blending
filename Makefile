@@ -1,21 +1,22 @@
 CC = g++
 
-SRC = Source/
+SRC = src/
+BIN = bin
 
 all: Alpha_Blending
 
 Alpha_Blending: main.o Alpha_Blending.o
-	$(CC) main.o Alpha_Blending.o -o Alpha_Blending.exe
-	del main.o Alpha_Blending.o
+	$(CC) $(BIN)main.o $(BIN)Alpha_Blending.o -o $(BIN)Alpha_Blending.exe
+	del $(BIN)main.o $(BIN)Alpha_Blending.o
 
 main.o:
-	$(CC) -c $(SRC)main.cpp -o main.o
+	$(CC) -c $(SRC)main.cpp -o $(BIN)main.o
 
 Alpha_Blending.o:
-	$(CC) -c -msse4.2 $(OPT) $(MODE) $(SRC)Alpha_Blending.cpp -o Alpha_Blending.o
+	$(CC) -c -msse4.2 $(OPT) $(MODE) $(SRC)Alpha_Blending.cpp -o $(BIN)Alpha_Blending.o
 
 run:
-	.\Alpha_Blending.exe $(FR) $(BK)
+	.\bin\Alpha_Blending.exe $(FR) $(BK)
 
 clean:
-	del *.exe
+	del $(BIN)Alpha_Blending.exe
