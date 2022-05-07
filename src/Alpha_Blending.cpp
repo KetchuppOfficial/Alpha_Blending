@@ -298,7 +298,7 @@ void Draw (const char *front_name, const char *back_name)
         
         #ifdef OPTIMIZED
         Blend_Optimized   (front, back, screen, front_back.width, front_back.height);
-        #elif
+        #else
         Blend_Unoptimized (front, back, screen, front_back.width, front_back.height);
         #endif
 
