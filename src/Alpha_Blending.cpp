@@ -282,18 +282,18 @@ void Draw (const char *front_name, const char *back_name)
     double run_time = 0.0;
 
     LARGE_INTEGER frequency = {};
-    QueryPerformanceFrequency (&frequency);
+    QueryPerformanceFrequency (&frequency); // the frequency of the performance counter
     #endif
 
-    unsigned long long n_frames = 0;
-    for (; n_frames < N_FRAMES; n_frames++)
+    unsigned long long frame_i = 0;
+    for (; frame_i < N_FRAMES; frame_i++)
     {
         if (txGetAsyncKeyState (VK_ESCAPE))
             break;
         
         #if MEASURE == 1
         LARGE_INTEGER start = {};
-        QueryPerformanceCounter (&start);
+        QueryPerformanceCounter (&start);   // the current value of the performance counter
         #endif
         
         #ifdef OPTIMIZED
@@ -312,7 +312,8 @@ void Draw (const char *front_name, const char *back_name)
     }
 
     #if MEASURE == 1
-    unsigned long long actual_frames = (n_frames < N_FRAMES - 1) ? n_frames : N_FRAMES; 
+    unsigned long long actual_frames = (frame_i < N_FRAMES - 1) ? frame_i : N_FRAMES; 
+
     printf ("Average FPS: %f\n", (double)actual_frames * (double)frequency.QuadPart / run_time);
     #endif
 
