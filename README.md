@@ -20,9 +20,10 @@ git clone git@github.com:KetchuppOfficial/Alpha_Blending.git
 cd Alpha_Blending
 ```
 
-Compile the program using the tool **make**:
+Compile the program using the tool **make**. You can choose one on 2 modes:
 ```bash
-make
+make                    # for basic mode
+make MODE=-DOPTIMIZED   # for SSE 4.2 mode
 ```
 
 You can also choose one of compliler optimization flags as in the example below:
@@ -32,9 +33,9 @@ make OPT=-O2
 
 To run the program, use **make** again:
 ```bash
-make run FR=Images\Cat.bmp BK=Images\Table.bmp
+make run FR=images\Cat.bmp BK=images\Table.bmp
 ```
-FR - picture that is supposed to be on the foreground, BK - picture to place on the background.
+**FR** - picture that is supposed to be on the foreground, **BK** - picture to place on the background.
 
 There are some options of conditional compilations in [Alpha_Blending.hpp](Alpha_Blending.hpp):
 ```C++
@@ -45,9 +46,8 @@ There are some options of conditional compilations in [Alpha_Blending.hpp](Alpha
 #include <emmintrin.h>
 #include <time.h>
 
-#define MEASURE 1           // <--- Set 1 to measure FPS
-#define N_FRAMES 2000       // <--- Set the number of frames to draw
-#define OPTIMIZED 1         // <--- Set 1 to turn of SSE optimizations
+#define MEASURE 0           // <--- Set 1 to measure FPS
+#define N_FRAMES 10000      // <--- Set the number of frames to draw
 ```
 
 ## Measurement of FPS
@@ -58,9 +58,13 @@ I ran a test that was calculating a frame for 2000 times. Only the time spent on
 
 | Optimization flag | Basic version | SSE version |
 |-------------------|---------------|-------------|
-|       None        |      126      |     121     |
-|       -O1         |      622      |    1845     |
-|       -O2         |      577      |    1830     |
-|       -O3         |      703      |    1847     |
+|       None        |      165      |     122     |
+|       -O1         |      420      |    1270     |
+|       -O2         |      418      |    1337     |
+|       -O3         |      434      |    1320     |
 
-We see that both optimized and unoptimized versions are equal in performace if being compiled without any optimization flag. At the same time -O1, -O2 and -O3 boost each version approximately equally. The boost coefficient is ~ 1800 / 600 = 3.
+We see that both optimized and unoptimized versions are almost equal in performace if being compiled without any optimization flag. At the same time -O1, -O2 and -O3 boost each version approximately equally. The boost coefficient is ~ 1200 / 400 = 3.
+
+## Example of alpha blended pictures
+
+![Poltorashka](Alpha_Blending.png)
