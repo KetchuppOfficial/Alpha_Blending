@@ -3,11 +3,10 @@ CC = g++
 SRC = src
 BIN = bin
 
-all: Alpha_Blending
+all: Alpha_Blending clean
 
-Alpha_Blending: main.o Alpha_Blending.o
+Alpha_Blending: main.o Alpha_Blending.o 
 	$(CC) $(BIN)\main.o $(BIN)\Alpha_Blending.o -o $(BIN)\Alpha_Blending.exe
-	del $(BIN)\*.o
 
 main.o:
 	$(CC) -c $(SRC)\main.cpp -o $(BIN)\main.o
@@ -19,4 +18,4 @@ run:
 	$(BIN)\Alpha_Blending.exe $(FR) $(BK)
 
 clean:
-	del $(BIN)*.exe
+	del $(BIN)\*.o
